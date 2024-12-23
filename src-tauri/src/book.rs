@@ -11,7 +11,10 @@ pub async fn book_abholung_aufenthaltserlaubnis(email: &String) -> Result<()> {
         .unwrap()
         .as_str()
         .unwrap();
-    let caps = DesiredCapabilities::chrome();
+    let mut caps = DesiredCapabilities::chrome();
+    caps.set_headless().unwrap();
+    caps.set_disable_gpu().unwrap();
+    caps.set_no_sandbox().unwrap();
     let driver = WebDriver::new(localhost, caps).await?;
     driver.get(auslaenderamt_url).await?;
 

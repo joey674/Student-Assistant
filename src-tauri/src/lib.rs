@@ -7,6 +7,9 @@ pub use notify::*;
 pub mod config;
 pub use config::*;
 
+pub mod driver;
+pub use driver::*;
+
 #[tauri::command]
 async fn activate(email: String) -> anyhow::Result<String,String> {
     match book_abholung_aufenthaltserlaubnis(&email).await {
@@ -19,31 +22,23 @@ async fn activate(email: String) -> anyhow::Result<String,String> {
     }
 }
 
-fn start_chromedriver() {
-    use std::process::Command;
-    use std::path::Path;
-    let path = Path::new("..");
-    let path = path.join("static");
-    let path = path.join("chromedriver.exe");
-    let mut child = Command::new(path)
-        .arg("--port=4444")
-        .spawn()
-        .expect("Failed to start chromedriver");
-
-    child.wait().expect("Failed to wait on chromedriver");
-}
-
-
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .setup(|app| {
-            let _ = std::thread::spawn(move || {
+            std::thread::spawn(|| {
                 start_chromedriver();
             });
             Ok(())
+        })
+        .on_window_event(move |windeow,event| match event {
+            tauri::WindowEvent::Destroyed => {
+                stop_chromedriver();
+            }
+            _ => {}
         })
         .invoke_handler(tauri::generate_handler![activate])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
+
