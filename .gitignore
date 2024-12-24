@@ -8,12 +8,14 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
+dest
 dist
 dist-ssr
 *.local
 
 public
 config.json
+target
 
 # Editor directories and files
 .vscode/*

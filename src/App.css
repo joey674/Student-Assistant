@@ -5,6 +5,7 @@
 .logo.react:hover {
   filter: drop-shadow(0 0 2em #61dafb);
 }
+
 :root {
   font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
   font-size: 16px;
@@ -28,6 +29,14 @@
   flex-direction: column;
   justify-content: center;
   text-align: center;
+  overflow: hidden;
+}
+
+.form-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem; /* 增加行间距 */
+  align-items: center; /* 让按钮和输入框居中对齐 */
 }
 
 .logo {
@@ -61,7 +70,8 @@ h1 {
 }
 
 input,
-button {
+button,
+select {
   border-radius: 8px;
   border: 1px solid transparent;
   padding: 0.6em 1.2em;
@@ -74,20 +84,25 @@ button {
   box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
 }
 
-button {
+button,
+select {
   cursor: pointer;
 }
 
-button:hover {
+button:hover,
+select:hover {
   border-color: #396cd8;
 }
-button:active {
+
+button:active,
+select:active {
   border-color: #396cd8;
   background-color: #e8e8e8;
 }
 
 input,
-button {
+button,
+select {
   outline: none;
 }
 
@@ -106,11 +121,44 @@ button {
   }
 
   input,
-  button {
+  button,
+  select {
     color: #ffffff;
     background-color: #0f0f0f98;
   }
-  button:active {
+
+  button:active,
+  select:active {
     background-color: #0f0f0f69;
   }
+}
+
+.form-group {
+  display: flex;
+  align-items: center; /* 垂直居中 */
+  justify-content: space-between; /* 标签和输入框对齐 */
+  width: 100%; /* 确保宽度一致 */
+  max-width: 400px; /* 控制整体宽度 */
+  margin: 0 auto; /* 居中整个表单 */
+}
+
+.form-group label {
+  flex: 1; /* 标签占据固定空间 */
+  text-align: right; /* 标签右对齐 */
+  margin-right: 1rem; /* 标签和输入框之间的间距 */
+}
+
+.form-group input,
+.form-group select {
+  flex: 2; /* 输入框和选择框占用较大空间 */
+}
+
+.log-container textarea {
+  width: 100%; /* 宽度适应父容器 */
+  height: 100px; /* 固定高度 */
+  border: 1px solid #ccc;
+  padding: 10px;
+  font-family: inherit;
+  box-sizing: border-box; /* 包括内边距和边框在宽度计算内 */
+  resize: none; /* 禁止用户调整大小 */
 }

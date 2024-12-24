@@ -6,8 +6,7 @@ use once_cell::sync::Lazy;
 pub static CONFIG: Lazy<Value> = Lazy::new(|| load());
 
 pub fn load() -> Value {
-    let path = Path::new("..");
-    let path = path.join("config.json");
+    let path = Path::new("static").join("config.json");
     let json_content = fs::read_to_string(path).unwrap();
     serde_json::from_str(&json_content).unwrap()
 }
@@ -16,7 +15,7 @@ pub fn load() -> Value {
 pub fn test() {   
     use std::env;
     let current_dir = env::current_dir().unwrap();
-    dbg!(current_dir);
+    log::trace!("{:?}",current_dir);
     let path = Path::new("..");
     let path = path.join("config.json");
     let json_content = fs::read_to_string(path).unwrap();
@@ -24,6 +23,6 @@ pub fn test() {
     let json_data: Value =serde_json::from_str(&json_content).unwrap();
 
     if let Some(item) = json_data.get("host_email_account") {
-        dbg!(item);
+        log::trace!("{}",item);
     }
 }

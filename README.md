@@ -2,11 +2,15 @@
 
 ## Recommended IDE Setup
 
-<!-- install firefox first
-cd E:\repo\StudentAssistant\public\geckodriver ;cargo run -->
+windows 11
+chrome
 
-## chrome
+## TODO
 
+1. logger(现在暂时用 log crate 和 tauri plugin)
+2. 验证码图像识别
+
+## utils
+
+chromedriver source
 https://googlechromelabs.github.io/chrome-for-testing/
-
-构建时带上 src-tauri 中的 static 文件;
