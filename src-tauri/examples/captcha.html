@@ -1,0 +1,92 @@
+<div class="row">
+  <div id="captcha_control">
+    <div id="captcha_image_audio_div">
+      <audio id="captcha_image_audio" preload="none">
+        <source
+          id="captcha_image_source_wav"
+          src="app/securimage/securimage_play.php?id=465c8cde7e745833b0e842e372027cc4"
+          type="audio/wav"
+        />
+      </audio>
+    </div>
+    <div id="captcha_image_audio_controls">
+      <a
+        tabindex="0"
+        class="captcha_play_button"
+        href="app/securimage/securimage_play.php?id=465c8cde7e745833b0e842e372027cc4"
+        onclick="return false"
+      >
+        <img
+          id="captcha_play"
+          class="captcha_play_image"
+          src="app/images/speaker_32x32.png"
+          alt="Sicherheitsabfrage vorlesen"
+          style=""
+        />
+        <img
+          id="captcha_loading"
+          class="captcha_loading_image rotating"
+          src="app/images/loading.gif"
+          alt="Audio wird geladen"
+          style="display: none"
+        />
+      </a>
+      <noscript
+        >Für die Audiowiedergabe muss Javascript aktiviert sein.</noscript
+      >
+    </div>
+
+    <a
+      tabindex="0"
+      href="#"
+      title="Sicherheitsabfrage neu laden"
+      onclick="document.getElementById('captcha_image').src = 'app/securimage/securimage_show.php?type=2&amp;source=personaldata&amp;' + Math.random(); captcha_image_audioObj.refresh(); this.blur(); return false"
+    >
+      <img
+        id="captcha_reload"
+        src="app/images/reload_32x32.png"
+        alt="Sicherheitsabfrage neu laden"
+        onclick="this.blur()"
+      />
+    </a>
+    <br />
+
+    <script type="text/javascript" src="app/securimage/securimage.js"></script>
+    <script type="text/javascript">
+      captcha_image_audioObj = new SecurimageAudio({
+        audioElement: "captcha_image_audio",
+        controlsElement: "captcha_image_audio_controls",
+      });
+    </script>
+    <div style="clear: both"></div>
+  </div>
+
+  <div id="captcha_output">
+    <img
+      id="captcha_image"
+      class="captcha_image_personaldata"
+      data-captchatype="2"
+      src="app/securimage/securimage_show.php?type=2&amp;source=personaldata&amp;0.32626180153359585"
+      alt="[[Sicherheitsabfrage]] [[Die Sicherheitsabfrage können Sie sich über Drücken des entsprechenden Bedienelements vorlesen lassen.]]"
+    />
+  </div>
+
+  <div id="captcha_input">
+    <label class="" for="captcha_result"
+      ><span class="redBoldText" aria-hidden="true">Zeichenfolge:</span
+      ><span class="visuallyhidden"
+        >Ergebnis der Sicherheitsabfrage:</span
+      ></label
+    >
+    <input
+      type="text"
+      name="captcha_code"
+      size="10"
+      maxlength="21"
+      class="textInput captcha_result_personaldata personaldataInput required"
+      autocomplete="off"
+      id="captcha_result"
+      required="required"
+    />
+  </div>
+</div>

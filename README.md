@@ -1,9 +1,20 @@
 # Student Assistant
 
-## Recommended IDE Setup
+## Setup
 
-windows 11
-chrome
+windows
+chrome browser
+
+## Dependence
+
+1. chromedriver
+2. pyo3, easyocr
+   (pip install easyocr)
+3. whisper
+   (pip install openai-whisper)
+   ffmpeg
+   (https://github.com/BtbN/FFmpeg-Builds/releases)
+   (https://www.wikihow.com/Install-FFmpeg-on-Windows)
 
 ## TODO
 
