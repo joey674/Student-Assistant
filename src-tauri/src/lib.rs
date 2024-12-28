@@ -4,13 +4,8 @@ pub use book::*;
 pub mod notify;
 pub use notify::*;
 
-pub mod config;
-pub use config::*;
-
-pub mod driver;
-pub use driver::*;
-
 pub mod utils;
+use tauri::Manager;
 pub use utils::*;
 
 pub mod app;
@@ -38,16 +33,14 @@ pub fn run() {
                 .build(),
         )
         .setup(|app| {
-            /* 初始化chromedriver */
-            std::thread::spawn(|| {
-                start_chromedriver();
-            });
+            dbg!("setup");
+            init_app_ins(app.app_handle().clone())?;
             Ok(())
         })
         .on_window_event(move |windeow, event| match event {
-            /* 程序退出时关闭chromedriver */
             tauri::WindowEvent::Destroyed => {
-                stop_chromedriver();
+                dbg!("stop");
+                let _ = get_app_ins().unwrap().stop();
             }
             _ => {}
         })
