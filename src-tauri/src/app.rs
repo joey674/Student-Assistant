@@ -38,6 +38,9 @@ pub struct App {
 }
 
 impl App {
+    /// 初始化服务
+    ///
+    ///
     pub fn init(app_handle: tauri::AppHandle) -> Self {
         /* 初始化chromedriver */
         let path = std::path::Path::new("static").join("chromedriver.exe");
@@ -59,6 +62,9 @@ impl App {
         }
     }
 
+    /// 关闭服务
+    ///
+    ///
     pub fn stop(&self) -> anyhow::Result<()> {
         /* 关闭chromedriver */
         let mut child = self.driver_handle.lock().unwrap();
@@ -67,6 +73,9 @@ impl App {
         Ok(())
     }
 
+    /// 注册服务指令;
+    /// 每当前端调用一次tauri::command,都需要记录指令状态,这样全局只需要传递uid就可以实现数据传递
+    ///
     pub fn add_command(&self, command_status: CommandStatus) -> uuid::Uuid {
         let command_id = uuid::Uuid::new_v4(); /* 为一次预定生成一个特定的预定id */
         let mut list = self.command_list.lock().unwrap();
@@ -74,6 +83,9 @@ impl App {
         command_id
     }
 
+    /// 获取服务指令状态
+    ///
+    ///
     pub fn get_command_status(&self, command_id: uuid::Uuid) -> anyhow::Result<CommandStatus> {
         let list = self.command_list.lock().unwrap();
         list.get(&command_id)
@@ -81,11 +93,17 @@ impl App {
             .ok_or_else(|| anyhow::anyhow!("command not found"))
     }
 
+    /// 更新服务指令状态
+    ///
+    ///
     pub fn update_command_status(&self, command_id: uuid::Uuid, command_status: CommandStatus) {
         let mut list = self.command_list.lock().unwrap();
         list.entry(command_id).and_modify(|s| *s = command_status);
     }
 
+    /// 获取配置文件中配置参数
+    /// 输入key值, 返回json文件中对应的数据结构
+    /// 注: 现在的配置文件暂时只支持 (k,v) = (&str,&str)
     pub fn get_config_value(&self, key: &str) -> &str {
         dbg!(key);
         self.config.get(key).unwrap().as_str().unwrap()
@@ -93,11 +111,18 @@ impl App {
 }
 
 static APP_INS: OnceCell<App> = OnceCell::const_new();
+
+/// 初始化app
+/// 只在tauri的setup时使用;
+///
 pub fn init_app_ins(app_handle: tauri::AppHandle) -> anyhow::Result<()> {
     APP_INS.set(App::init(app_handle))?;
     Ok(())
 }
 
+/// 获取app
+/// 全局可用
+///
 pub fn get_app_ins() -> anyhow::Result<&'static App> {
     APP_INS
         .get()

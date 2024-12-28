@@ -66,12 +66,20 @@ where
     ) -> std::pin::Pin<Box<dyn std::future::Future<Output = anyhow::Result<bool>> + Send>>,
 {
     loop {
-        if let Ok(has_appointment) = book_fn(uid).await {
-            if has_appointment {
-                break;
+        dbg!("start new book attempt");
+        match book_fn(uid).await {
+            Ok(book_success) => {
+                dbg!(book_success);
+                if book_success {
+                    break;
+                }
+            }
+            Err(e) => {
+                dbg!(e);
             }
         }
 
+        dbg!("no appointment, will retry");
         if (4..9).contains(&Local::now().hour()) {
             tokio::time::sleep(tokio::time::Duration::from_secs(20)).await;
         } else {
@@ -163,14 +171,10 @@ pub async fn book_abholung_aufenthaltserlaubnis(uid: uuid::Uuid) -> anyhow::Resu
         return Ok(false);
     }
 
-    /*
-        TODO
-        在这里可以先提醒
-    */
+    /* TODO 在这里可以先提醒*/
     let mut dates = Vec::new(); // 选其中第一天
     for elem in driver.find_all(By::Css("h3")).await? {
         let text = elem.text().await?;
-        dbg!(&text);
         if text.contains("Montag")
             || text.contains("Dienstag")
             || text.contains("Mittwoch")
@@ -180,18 +184,19 @@ pub async fn book_abholung_aufenthaltserlaubnis(uid: uuid::Uuid) -> anyhow::Resu
             dates.push(elem);
         }
     }
-    let date = dates[0].clone();
+    dbg!(dates[0].text().await?);
     driver
-        .execute("arguments[0].click();", vec![date.to_json()?])
+        .execute("arguments[0].click();", vec![dates[0].to_json()?])
         .await?;
 
     let mut times = Vec::new(); // 选其中第一个时间段
     for elem in driver.find_all(By::Tag("button")).await? {
         if elem.text().await?.contains(":") && elem.is_enabled().await? {
-            dbg!(&elem.text().await?);
             times.push(elem);
         }
     }
+
+    dbg!(times[0].text().await?);
     driver
         .execute("arguments[0].click();", vec![times[0].to_json()?])
         .await?;
@@ -208,9 +213,69 @@ pub async fn book_abholung_aufenthaltserlaubnis(uid: uuid::Uuid) -> anyhow::Resu
         输入个人信息
         验证码识别 图片/语音
     */
-    /*
-    图片识别
-    */
+    dbg!("step5");
+    let user_info = match app.get_command_status(uid)? {
+        CommandStatus::Book { user_info, .. } => user_info,
+        CommandStatus::UndefinedCommand { .. } => {
+            panic!();
+        }
+    };
+    dbg!(&user_info);
+
+    let vorname_box = driver.find(By::Id("vorname")).await?;
+    vorname_box
+        .check(&driver)
+        .await?
+        .send_keys(user_info.vorname)
+        .await?;
+    let nachname_box = driver.find(By::Id("nachname")).await?;
+    nachname_box
+        .check(&driver)
+        .await?
+        .send_keys(user_info.nachname)
+        .await?;
+    let email_box = driver.find(By::Id("email")).await?;
+    email_box
+        .check(&driver)
+        .await?
+        .send_keys(user_info.email.clone())
+        .await?;
+    let emailwhlg_box = driver.find(By::Id("emailwhlg")).await?;
+    emailwhlg_box
+        .check(&driver)
+        .await?
+        .send_keys(user_info.email)
+        .await?;
+    let tel_box = driver.find(By::Id("tel")).await?;
+    tel_box
+        .check(&driver)
+        .await?
+        .send_keys(user_info.telefonnummer)
+        .await?;
+    let geburtsdatum_day_box = driver.find(By::Id("geburtsdatumDay")).await?;
+    geburtsdatum_day_box
+        .check(&driver)
+        .await?
+        .send_keys(user_info.geburtsdatum[0].to_string())
+        .await?;
+    let geburtsdatum_month_box = driver.find(By::Id("geburtsdatumMonth")).await?;
+    geburtsdatum_month_box
+        .check(&driver)
+        .await?
+        .send_keys(user_info.geburtsdatum[1].to_string())
+        .await?;
+    let geburtsdatum_year_box = driver.find(By::Id("geburtsdatumYear")).await?;
+    geburtsdatum_year_box
+        .check(&driver)
+        .await?
+        .send_keys(user_info.geburtsdatum[2].to_string())
+        .await?;
+
+    let checkbox = driver.find(By::Id("privacy_check_agreement")).await?;
+    checkbox.check(&driver).await?.click().await?;
+    // checkbox.screenshot(&download_dir.join("chcekbox.png")).await?;
+
+    /* 图片识别 */
     let captcha_image_path = download_dir.join("captcha_image.png");
     let captcha_image = driver.find(By::Id("captcha_image")).await?;
     captcha_image
@@ -220,11 +285,7 @@ pub async fn book_abholung_aufenthaltserlaubnis(uid: uuid::Uuid) -> anyhow::Resu
         .await?;
     let captcha_image_str = ocr(captcha_image_path.to_str().unwrap())?;
     dbg!(captcha_image_str);
-
-    /*
-        语音识别
-        这里是需要下载音频文件; 必须使用当前模拟的浏览器driver发送http请求下载 不能用reqwest之类的发送http请求 因为是https协议 用第三方发送请求得到的回应是不匹配的
-    */
+    /* 语音识别 这里是需要下载音频文件; 必须使用当前模拟的浏览器driver发送http请求下载 不能用reqwest之类的发送http请求 因为是https协议 用第三方发送请求得到的回应是不匹配的 */
     let captcha_audio = driver.find(By::Id("captcha_image_source_wav")).await?;
     let captcha_audio_url_rel = dbg!(captcha_audio.attr("src").await?.unwrap());
     let mut captcha_audio_url = auslaenderamt_url.to_string();
@@ -236,7 +297,6 @@ pub async fn book_abholung_aufenthaltserlaubnis(uid: uuid::Uuid) -> anyhow::Resu
             vec![],
         )
         .await?;
-
     /* chromedriver不会等待下载完成 所以这里需要主动等待 */
     let captcha_audio_path: PathBuf;
     loop {
@@ -247,15 +307,39 @@ pub async fn book_abholung_aufenthaltserlaubnis(uid: uuid::Uuid) -> anyhow::Resu
         tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
     }
     let captcha_audio_str = asr(captcha_audio_path.to_str().unwrap())?;
-    dbg!(captcha_audio_str);
+    dbg!(&captcha_audio_str);
 
-    /*     // 刷新
-    let reload_button = driver.find(By::Id("captcha_reload")).await?;
-    reload_button.check(&driver).await?.click().await?; */
+    /* 输入验证结果 */
+    let captcha_result_box = driver.find(By::Id("captcha_result")).await?;
+    captcha_result_box
+        .check(&driver)
+        .await?
+        .send_keys(captcha_audio_str)
+        .await?;
+    /* 刷新 */
+    // let reload_button = driver.find(By::Id("captcha_reload")).await?;
+    // reload_button.check(&driver).await?.click().await?;
+    driver.screenshot(&download_dir.join("step5.png")).await?;
+
+    /* 提交 */
+    let submit_button = driver.find(By::Id("chooseTerminButton")).await?;
+    submit_button.check(&driver).await?.click().await?;
+
+    /*
+        step6
+    */
+    driver.screenshot(&download_dir.join("step6.png")).await?;
+    if let Ok(_error_element) = driver.find(By::Css("div.content__error")).await {
+        dbg!("wrong input userdata in step5");
+        std::fs::remove_dir_all(&download_dir)?;
+        driver.quit().await?;
+        return Ok(false);
+    }
 
     /*
         结束
     */
+    std::fs::remove_dir_all(&download_dir)?;
     driver.quit().await?;
     return Ok(true);
 }

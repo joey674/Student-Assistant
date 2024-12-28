@@ -33,13 +33,13 @@ pub fn run() {
                 .build(),
         )
         .setup(|app| {
-            dbg!("setup");
+            dbg!("setup tauri");
             init_app_ins(app.app_handle().clone())?;
             Ok(())
         })
         .on_window_event(move |windeow, event| match event {
             tauri::WindowEvent::Destroyed => {
-                dbg!("stop");
+                dbg!("stop tauri");
                 let _ = get_app_ins().unwrap().stop();
             }
             _ => {}
